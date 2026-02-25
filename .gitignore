@@ -1,0 +1,4 @@
+.tab_fcia/
+__pycache__/
+*.pyc
+.DS_Store
