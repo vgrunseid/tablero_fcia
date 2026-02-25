@@ -41,6 +41,100 @@ h1, h2, h3, h4, h5, h6, p, label, span, div { color: #ffffff; }
 }
 
 .section-sep { margin: 1.5rem 0 0.5rem 0; height: 1px; background: #1b2d5f; }
+
+section[data-testid="stSidebar"] { background-color: #0B1736; }
+section[data-testid="stSidebar"] label { color: #ffffff; }
+section[data-testid="stSidebar"] input { color: #ffffff; background-color: #10204d; }
+section[data-testid="stSidebar"] div[data-baseweb="select"] > div {
+    background-color: #10204d;
+    color: #ffffff;
+    border: 1px solid #3e5cb2;
+}
+section[data-testid="stSidebar"] div[data-baseweb="select"] span { color: #ffffff; }
+section[data-testid="stSidebar"] [data-baseweb="select"] svg { fill: #ffffff; }
+section[data-testid="stSidebar"] div[data-baseweb="popover"] {
+    background-color: #10204d;
+    color: #ffffff;
+}
+section[data-testid="stSidebar"] div[data-baseweb="menu"] {
+    background-color: #10204d;
+    color: #ffffff;
+}
+section[data-testid="stSidebar"] div[data-baseweb="option"] {
+    background-color: #10204d;
+    color: #ffffff;
+}
+section[data-testid="stSidebar"] div[data-baseweb="option"]:hover {
+    background-color: #1b2d5f;
+}
+
+.stApp div[data-baseweb="popover"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+.stApp div[data-baseweb="popover"] > div {
+    background-color: #10204d !important;
+}
+.stApp div[data-baseweb="popover"] ul {
+    background-color: #10204d !important;
+}
+.stApp div[data-baseweb="menu"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+.stApp div[data-baseweb="menu"] ul {
+    background-color: #10204d !important;
+}
+.stApp div[data-baseweb="option"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+.stApp div[data-baseweb="option"] * {
+    color: #ffffff !important;
+}
+.stApp div[data-baseweb="option"]:hover {
+    background-color: #1b2d5f !important;
+}
+.stApp [role="listbox"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+.stApp [data-baseweb="popover"] [role="listbox"] {
+    background-color: #10204d !important;
+}
+.stApp [data-baseweb="popover"] [role="listbox"] > div {
+    background-color: #10204d !important;
+}
+.stApp [role="option"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+.stApp [role="option"] * {
+    color: #ffffff !important;
+}
+.stApp [role="option"]:hover {
+    background-color: #1b2d5f !important;
+}
+
+body div[data-baseweb="popover"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+body div[data-baseweb="popover"] > div,
+body div[data-baseweb="popover"] ul {
+    background-color: #10204d !important;
+}
+body [role="listbox"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+body [role="option"] {
+    background-color: #10204d !important;
+    color: #ffffff !important;
+}
+body [role="option"] * {
+    color: #ffffff !important;
+}
 </style>
 """,
     unsafe_allow_html=True,
@@ -474,7 +568,36 @@ except FileNotFoundError:
 
 rop_maps = load_rop(Path("data/rop_sugerido.csv"), rop_file)
 
-codigo = st.text_input("Codigo de medicamento", value="").strip()
+def _use_selector():
+    st.session_state["codigo_manual"] = ""
+
+
+def _use_manual():
+    st.session_state["codigo_selector"] = ""
+
+
+selector_df = df[["codigo", "descrip"]].drop_duplicates().copy()
+selector_df["codigo"] = selector_df["codigo"].astype(str).str.strip()
+selector_df = selector_df.sort_values(["descrip", "codigo"])
+selector_codigos = selector_df["codigo"].tolist()
+desc_map = selector_df.set_index("codigo")["descrip"].to_dict()
+
+codigo_preselect = st.sidebar.selectbox(
+    "Producto (lista)",
+    options=[""] + selector_codigos,
+    index=0,
+    format_func=lambda c: "" if c == "" else f"{desc_map.get(c, '')} ({c})",
+    key="codigo_selector",
+    on_change=_use_selector,
+)
+codigo_manual = st.text_input(
+    "Codigo de medicamento",
+    value="",
+    key="codigo_manual",
+    on_change=_use_manual,
+).strip()
+
+codigo = codigo_manual or codigo_preselect
 
 if not codigo:
     st.info("Ingresa un codigo para ver los graficos.")

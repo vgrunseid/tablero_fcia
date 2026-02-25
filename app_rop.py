@@ -521,7 +521,7 @@ except FileNotFoundError:
 
 resumen, ventas_1y_full, stock_real_diario, quantiles, ventana_inicio, max_date = compute_rop(df)
 rop_sugerido = load_rop_sugerido(Path("data/rop_sugerido.csv"), rop_file)
-extra_cols = ["AhorroCapitalAjustado", "ExcesoCapitalHolgado"]
+extra_cols = ["stock_actual", "AhorroCapitalAjustado", "ExcesoCapitalHolgado"]
 
 if not rop_sugerido.empty and all(c in rop_sugerido.columns for c in extra_cols):
     resumen = resumen.merge(rop_sugerido[["codigo"] + extra_cols], on="codigo", how="left")
@@ -583,6 +583,7 @@ st.download_button(
 )
 
 cols_resumen = [
+    "stock_actual",
     "ROP_ajustado",
     "ROP_intermedio",
     "ROP_holgado",
@@ -594,7 +595,23 @@ cols_resumen = [
     "%_quiebre_real",
 ]
 
-column_config = {c: st.column_config.NumberColumn(width="small") for c in cols_resumen}
+column_labels = {
+    "stock_actual": "Stock\nactual",
+    "ROP_ajustado": "ROP\najustado",
+    "ROP_intermedio": "ROP\nintermedio",
+    "ROP_holgado": "ROP\nholgado",
+    "AhorroCapitalAjustado": "Ahorro capital\najustado",
+    "ExcesoCapitalHolgado": "Exceso capital\nholgado",
+    "%_quiebre_ajustado": "% quiebre\najustado",
+    "%_quiebre_intermedio": "% quiebre\nintermedio",
+    "%_quiebre_holgado": "% quiebre\nholgado",
+    "%_quiebre_real": "% quiebre\nreal",
+}
+
+column_config = {
+    c: st.column_config.NumberColumn(label=column_labels.get(c, c), width="small")
+    for c in cols_resumen
+}
 
 st.dataframe(
     pd.DataFrame([row])[cols_resumen],
