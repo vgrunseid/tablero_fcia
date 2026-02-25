@@ -24,3 +24,4 @@ streamlit run app_rop.py
 - `data/rop_sugerido.csv` (opcional)
 
 Tambien podes subir los CSV desde la barra lateral.
+# tablero_fcia
